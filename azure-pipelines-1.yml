@@ -1,0 +1,34 @@
+trigger:
+- main  # or your branch name
+
+pool:
+  name: Default  # your agent pool name with the RPi agent
+
+steps:
+- script: |
+    echo "Pulling code on RPi agent"
+    ls -la
+  displayName: 'List repo files'
+
+- script: |
+    echo "Building backend image"
+    docker build -t my-backend:latest ./server
+  workingDirectory: $(System.DefaultWorkingDirectory)/1/s
+  displayName: 'Build backend Docker image'
+
+- script: |
+    echo "Building frontend image"
+    docker build -t my-frontend:latest ./client
+  workingDirectory: $(System.DefaultWorkingDirectory)/1/s
+  displayName: 'Build frontend Docker image'
+
+- script: |
+    echo "Restarting containers"
+    docker stop backend-container || true
+    docker rm backend-container || true
+    docker run -d --name backend-container -p 3000:3000 my-backend:latest
+
+    docker stop frontend-container || true
+    docker rm frontend-container || true
+    docker run -d --name frontend-container -p 8080:80 my-frontend:latest
+  displayName: 'Restart backend and frontend containers'
