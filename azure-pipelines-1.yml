@@ -13,13 +13,13 @@ steps:
 - script: |
     echo "Building backend image"
     docker build -t my-backend:latest ./server
-  workingDirectory: $(System.DefaultWorkingDirectory)/1/s
+  workingDirectory: $(System.DefaultWorkingDirectory)
   displayName: 'Build backend Docker image'
 
 - script: |
     echo "Building frontend image"
     docker build -t my-frontend:latest ./client
-  workingDirectory: $(System.DefaultWorkingDirectory)/1/s
+  workingDirectory: $(System.DefaultWorkingDirectory)
   displayName: 'Build frontend Docker image'
 
 - script: |
