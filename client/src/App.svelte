@@ -1,7 +1,22 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+  import { onMount } from 'svelte';
+  import svelteLogo from './assets/svelte.svg';
+  import viteLogo from '/vite.svg';
+  import Counter from './lib/Counter.svelte';
+
+  let temperature = null;
+  let error = null;
+
+  onMount(async () => {
+    try {
+      const response = await fetch('http://192.168.0.184:3000/api/current-temp');
+      const data = await response.json();
+      temperature = data.temperature;
+    } catch (err) {
+      error = 'Failed to fetch temperature';
+      console.error(err);
+    }
+  });
 </script>
 
 <main>
@@ -17,6 +32,17 @@
 
   <div class="card">
     <Counter />
+  </div>
+
+  <div class="card">
+    <h2>Weather Info</h2>
+    {#if temperature}
+      <p>🌡️ Current temperature: {temperature}°C</p>
+    {:else if error}
+      <p style="color: red;">{error}</p>
+    {:else}
+      <p>Loading temperature...</p>
+    {/if}
   </div>
 
   <p>
