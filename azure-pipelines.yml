@@ -1,0 +1,9 @@
+trigger: none
+
+pool:
+  name: Default  # or your chosen agent pool name
+
+jobs:
+- job: TestAgent
+  steps:
+  - script: echo "Hello from RPi Azure Agent!"
