@@ -42,6 +42,10 @@ function getNetworkBytes() {
 
 app.get('/api/network', async (req, res) => {
     try {
+        console.log('Current:', currentStats);
+        console.log('Previous:', previousStats);
+        console.log('Time delta (s):', (now - previousTime) / 1000);
+
         const now = Date.now();
         const currentStats = await getNetworkBytes();
 
