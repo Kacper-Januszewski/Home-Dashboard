@@ -73,7 +73,7 @@
     <p>Current time: {time}</p>
   </div>
 
-  <div class="card">
+  <div class="card" style="margin-top:1em;">
     <h2>Weather Info</h2>
     {#if temperature !== null}
       <p>🌡️ Current temperature: {temperature}°C</p>
