@@ -26,7 +26,7 @@ steps:
     echo "Restarting containers"
     docker stop backend-container || true
     docker rm backend-container || true
-    docker run -d --name backend-container -p 3000:3000 my-backend:latest
+    docker run -d --name backend-container --network=host my-backend:latest
 
     docker stop frontend-container || true
     docker rm frontend-container || true
