@@ -7,7 +7,7 @@
   let month;
   let year;
 
-  // Initialize date info once (day/month/year don't change often)
+  // Date info (static)
   const now = new Date();
   day = now.toLocaleDateString(undefined, { weekday: 'long' });
   date = now.getDate();
@@ -20,13 +20,14 @@
   }
 
   onMount(() => {
-    updateTime(); // Initial time set
+    updateTime();
     const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval); // Clean up on unmount
+    return () => clearInterval(interval);
   });
 
+  // Weather temperature
   let temperature = null;
-  let error = null;
+  let tempError = null;
 
   onMount(async () => {
     try {
@@ -34,12 +35,37 @@
       const data = await response.json();
       temperature = data.temperature;
     } catch (err) {
-      error = 'Failed to fetch temperature';
+      tempError = 'Failed to fetch temperature';
       console.error(err);
     }
   });
-</script>
 
+  // Network stats
+  let download = null;
+  let upload = null;
+  let netError = null;
+
+  async function fetchNetworkStats() {
+    try {
+      const response = await fetch('http://192.168.0.184:3000/api/network');
+      const data = await response.json();
+
+      // Convert MB/s to KB/s with 2 decimals
+      download = (data.download * 1024).toFixed(2);
+      upload = (data.upload * 1024).toFixed(2);
+    } catch (err) {
+      netError = 'Failed to fetch network stats';
+      console.error(err);
+    }
+  }
+
+  // Fetch network stats every 3 seconds
+  onMount(() => {
+    fetchNetworkStats();
+    const interval = setInterval(fetchNetworkStats, 1000);
+    return () => clearInterval(interval);
+  });
+</script>
 
 <main>
   <p>Today is {day}, {month} {date}, {year}</p>
@@ -47,15 +73,37 @@
 
   <div class="card">
     <h2>Weather Info</h2>
-    {#if temperature}
+    {#if temperature !== null}
       <p>🌡️ Current temperature: {temperature}°C</p>
-    {:else if error}
-      <p style="color: red;">{error}</p>
+    {:else if tempError}
+      <p style="color: red;">{tempError}</p>
     {:else}
       <p>Loading temperature...</p>
+    {/if}
+  </div>
+
+  <div class="card" style="margin-top:1em;">
+    <h2>Network Usage</h2>
+    {#if download !== null && upload !== null}
+      <p>⬇️ Download: {download} KB/s</p>
+      <p>⬆️ Upload: {upload} KB/s</p>
+    {:else if netError}
+      <p style="color: red;">{netError}</p>
+    {:else}
+      <p>Loading network stats...</p>
     {/if}
   </div>
 </main>
 
 <style>
+  main {
+    font-family: Arial, sans-serif;
+    padding: 1rem;
+  }
+  .card {
+    border: 1px solid #ccc;
+    padding: 1rem;
+    border-radius: 8px;
+    max-width: 300px;
+  }
 </style>
