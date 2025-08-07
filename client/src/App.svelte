@@ -68,8 +68,10 @@
 </script>
 
 <main>
-  <p>Today is {day}, {month} {date}, {year}</p>
-  <p>Current time: {time}</p>
+  <div class="card">
+    <p>Today is {day}, {date} {month}, {year}</p>
+    <p>Current time: {time}</p>
+  </div>
 
   <div class="card">
     <h2>Weather Info</h2>
