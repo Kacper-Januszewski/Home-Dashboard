@@ -1,9 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const osu = require('node-os-utils');
+const { exec } = require('child_process');
 
 const app = express();
 const PORT = 3000;
+
+let previousStats = null;
+let previousTime = Date.now();
 
 app.use(cors());
 
@@ -12,18 +15,60 @@ const API_KEY = 'qeorj7v9mulj4pt3bc7wjh9tffod31ihdcl9u83b';
 
 const METEOSOURCE_URL = `https://www.meteosource.com/api/v1/free/point?place_id=warsaw&sections=current,hourly&language=en&units=auto&key=${API_KEY}`;
 
+function getNetworkBytes(){
+    return new Promise((resolve, reject) => {
+        exec("cat /proc/net/dev", (error, stdout) => {
+            if (error) return reject(error);
+
+            const lines = stdout.split("\n").slice(2);
+            let totalRecv = 0;
+            let totalTrans = 0;
+
+            lines.forEach(line => {
+                const parts = line.trim().split('/[:\s]+/');
+                if (parts.length < 17) return;
+
+                const iface = parts[0];
+                if (!iface.startsWith('eth') && !iface.startsWith('wlan')) return;
+
+                totalRecv += parseInt(parts[1]);
+                totalTrans += parseInt(parts[2]);
+            });
+
+            resolve({ totalRecv, totalTrans });
+        });
+    });
+}
+
 app.get('/api/network', async (req, res) => {
     try {
-        const stats = await osu.netstat.inOut();
-        res.json({
-            inputMb: stats.inputMb,
-            outputMb: stats.outputMb
-        });
+        const now = Date.now();
+        const currentStats = await getNetworkBytes();
+
+        let result = {
+            download: 0,
+            upload: 0
+        }
+
+        if (previousStats) {
+            const timeDeltaSec = (now - previousTime) / 1000;
+            const bytesRecvDelta = currentStats.totalRecv - previousStats.totalRecv;
+            const bytesTransDelta = currentStats.totalTrans - previousStats.totalTrans;
+
+            result = {
+                download: (bytesRecvDelta / 1024 / 1024) / timeDeltaSec,
+                upload: (bytesTransDelta / 1024 / 1024 ) / timeDeltaSec
+            };
+        }
+
+        previousStats = currentStats;
+        previousTime = now;
+
+        res.json(result);
     } catch (error) {
-        console.error('Error fetching network stats: ', error);
-        res.status(500).json({error: 'Failed to fetch network stats'});
+        res.status(500).json({error: 'Failed to get network stats'})
     }
-});
+})
 
 app.get('/api/current-temp', async (req, res) => {
     try {
