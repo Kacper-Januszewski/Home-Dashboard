@@ -42,26 +42,31 @@ function getNetworkBytes() {
 
 app.get('/api/network', async (req, res) => {
     try {
-        console.log('Current:', currentStats);
-        console.log('Previous:', previousStats);
-        console.log('Time delta (s):', (now - previousTime) / 1000);
-
         const now = Date.now();
         const currentStats = await getNetworkBytes();
+
+        console.log('Current stats:', currentStats);
+        console.log('Previous stats:', previousStats);
+        console.log('Time now:', now);
+        console.log('Previous time:', previousTime);
 
         let result = {
             download: 0,
             upload: 0
-        }
+        };
 
         if (previousStats) {
             const timeDeltaSec = (now - previousTime) / 1000;
             const bytesRecvDelta = currentStats.totalRecv - previousStats.totalRecv;
             const bytesTransDelta = currentStats.totalTrans - previousStats.totalTrans;
 
+            console.log('Time delta (s):', timeDeltaSec);
+            console.log('Bytes received delta:', bytesRecvDelta);
+            console.log('Bytes transmitted delta:', bytesTransDelta);
+
             result = {
                 download: (bytesRecvDelta / 1024 / 1024) / timeDeltaSec,
-                upload: (bytesTransDelta / 1024 / 1024 ) / timeDeltaSec
+                upload: (bytesTransDelta / 1024 / 1024) / timeDeltaSec
             };
         }
 
@@ -70,9 +75,9 @@ app.get('/api/network', async (req, res) => {
 
         res.json(result);
     } catch (error) {
-        res.status(500).json({error: 'Failed to get network stats'})
+        res.status(500).json({error: 'Failed to get network stats'});
     }
-})
+});
 
 app.get('/api/current-temp', async (req, res) => {
     try {
