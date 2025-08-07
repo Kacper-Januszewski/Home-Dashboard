@@ -15,7 +15,7 @@ const API_KEY = 'qeorj7v9mulj4pt3bc7wjh9tffod31ihdcl9u83b';
 
 const METEOSOURCE_URL = `https://www.meteosource.com/api/v1/free/point?place_id=warsaw&sections=current,hourly&language=en&units=auto&key=${API_KEY}`;
 
-function getNetworkBytes(){
+function getNetworkBytes() {
     return new Promise((resolve, reject) => {
         exec("cat /proc/net/dev", (error, stdout) => {
             if (error) return reject(error);
@@ -25,14 +25,14 @@ function getNetworkBytes(){
             let totalTrans = 0;
 
             lines.forEach(line => {
-                const parts = line.trim().split('/[:\s]+/');
+                const parts = line.trim().split(/[:\s]+/);
                 if (parts.length < 17) return;
 
                 const iface = parts[0];
-                if (!iface.startsWith('eth') && !iface.startsWith('wlan')) return;
-
-                totalRecv += parseInt(parts[1]);
-                totalTrans += parseInt(parts[2]);
+                if (iface === 'wlan0') {
+                    totalRecv += parseInt(parts[1]);  // received bytes
+                    totalTrans += parseInt(parts[9]); // transmitted bytes
+                }
             });
 
             resolve({ totalRecv, totalTrans });
